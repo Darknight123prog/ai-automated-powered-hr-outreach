@@ -1,0 +1,196 @@
+{
+  "name": "Job +extractor+sender AI automation",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "id": "9739d6ad-703f-473f-98f8-afc1092040b0",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "url": "https://api.apify.com/v2/actor-runs/<APIFY_RUN_ID>?token=<APIFY_API_TOKEN>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [240, 64],
+      "id": "bcbf03cb-1dd2-4556-9010-6cc503a6e1f9",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "url": "https://api.apify.com/v2/datasets/<APIFY_DATASET_ID>/items?format=xlsx&clean=true&token=<APIFY_API_TOKEN>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [448, 64],
+      "id": "292a5ed0-71f0-4923-af5d-5a6d03c0a992",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": "<GOOGLE_SHEET_ID>",
+        "sheetName": "Sheet1",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Description": "={{ $json.Description }}",
+            "DetailLink": "={{ $json.DetailLink }}",
+            "Email": "={{ $json.Email }}",
+            "Title": "={{ $json.Title }}"
+          },
+          "matchingColumns": ["Description"]
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [928, 64],
+      "id": "3d3b09ab-0bd5-4a04-b85b-9bd2bc78137c",
+      "name": "Append or update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "<REDACTED>",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [624, 64],
+      "id": "0bad4ae2-47f9-4f2c-a4e2-f152fd89ae4e",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "model": "agentica-org/deepcoder-14b-preview:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [1744, 240],
+      "id": "eff5b87c-c688-4cce-95bb-75e5b147cb7a",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "<REDACTED>",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.prompt }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [1808, -48],
+      "id": "8bc4d9c0-0d03-4268-b527-9bc442617975",
+      "name": "AI Agent",
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [1136, 64],
+      "id": "2ed95dc0-ee68-4caa-9408-0d2f19e254f9",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "name": "Replace Me",
+      "typeVersion": 1,
+      "position": [1552, 64],
+      "id": "ac2e69a3-cd59-4c54-afac-4d8e5a5235e9"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1eb10bb8-7d11-427c-beac-8ec10bfbdc55",
+              "name": "=prompt",
+              "value": "=You are a professional recruiter and career coach..."
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1344, -32],
+      "id": "39b3dc47-a166-4a81-9be3-f3439b9a049d",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "sendTo": "satishkumargupta6658@gmail.com",
+        "subject": "={{ $json.subject }}",
+        "emailType": "text",
+        "message": "={{ $json.body }}",
+        "options": {
+          "appendAttribution": false,
+          "senderName": "Satish kumar gupta"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [2448, -80],
+      "id": "475abb73-7584-47a8-8041-60331ce39d99",
+      "name": "Send a message",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "<REDACTED>",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.Description }}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [1968, 208],
+      "id": "ad94ff09-0ddd-4836-b69f-a88e6a5b4926",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserItemList",
+      "typeVersion": 1,
+      "position": [2160, 272],
+      "id": "1387f4f9-8e04-48df-8815-20bb5000f2ab",
+      "name": "Item List Output Parser"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Clean JSON output code..."
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2208, -80],
+      "id": "58f934df-47cb-4aca-823c-54da9145f55e",
+      "name": "Code in JavaScript"
+    }
+  ]
+}
