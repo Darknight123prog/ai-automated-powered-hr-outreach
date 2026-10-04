@@ -50,9 +50,4 @@ This repository contains an **n8n workflow** that automates the process of extra
 
 ---
 
-## ⚙️ Setup Instructions
 
-1. **Clone this repo**
-   ```bash
-   git clone https://github.com/<your-username>/n8n-hr-outreach.git
-   cd n8n-hr-outreach
